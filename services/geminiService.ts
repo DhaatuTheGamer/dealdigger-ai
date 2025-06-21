@@ -8,11 +8,13 @@ let chatInstance: Chat | null = null;
 
 const initializeAi = (): GoogleGenAI => {
   if (ai) return ai;
-  if (!process.env.API_KEY) {
-    console.warn("API_KEY environment variable not found. AI features will be disabled.");
+  // Access Vite environment variables using import.meta.env
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) {
+    console.warn("VITE_GEMINI_API_KEY environment variable not found. AI features will be disabled.");
     throw new Error("API_KEY_MISSING");
   }
-  ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  ai = new GoogleGenAI({ apiKey: apiKey });
   return ai;
 };
 
@@ -266,8 +268,10 @@ Example output:
 };
 
 export const startChat = (): void => {
-  if (!process.env.API_KEY) {
-    console.warn("API_KEY environment variable not found. Chat features will be disabled.");
+  // Access Vite environment variables using import.meta.env
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) {
+    console.warn("VITE_GEMINI_API_KEY environment variable not found. Chat features will be disabled.");
     return;
   }
   const localAi = initializeAi();
