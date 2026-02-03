@@ -77,11 +77,17 @@ const parseJsonFromText = <T,>(text: string, isArrayExpected: boolean = false): 
       for (let i = 0; i < arrayContent.length; i++) {
         const char = arrayContent[i];
 
-        if (char === '"' && (i === 0 || arrayContent[i-1] !== '\\' || (arrayContent[i-1] === '\\' && i > 1 && arrayContent[i-2] === '\\') ) ) {
-          // Basic string toggle: handle simple escapes like \\" but not complex ones deeply
-           if (i > 0 && arrayContent[i-1] === '\\' && !(i > 1 && arrayContent[i-2] === '\\')) {
-            // It's an escaped quote, don't toggle inString
-          } else {
+        if (char === '"') {
+          let backslashCount = 0;
+          for (let j = i - 1; j >= 0; j--) {
+            if (arrayContent[j] === '\\') {
+              backslashCount++;
+            } else {
+              break;
+            }
+          }
+
+          if (backslashCount % 2 === 0) {
             inString = !inString;
           }
         }
