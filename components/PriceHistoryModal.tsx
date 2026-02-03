@@ -15,6 +15,12 @@ const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({ deal, priceHistor
 
   const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
 
+  const prediction = React.useMemo(() => {
+    return Math.random() > 0.5
+      ? " likely to remain stable in the short term."
+      : " showing good value. Consider purchasing soon if interested.";
+  }, [deal.id]);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl transform transition-all duration-300 scale-100">
@@ -47,7 +53,7 @@ const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({ deal, priceHistor
         <div className="bg-indigo-50 p-4 rounded-lg">
           <p className="text-sm text-indigo-700">
             <strong>AI Prediction:</strong> Based on current trends, the price for "{deal.title}" is 
-            {Math.random() > 0.5 ? " likely to remain stable in the short term." : " showing good value. Consider purchasing soon if interested."}
+            {prediction}
           </p>
           <p className="text-xs text-indigo-500 mt-1">(Note: This is a simulated prediction for demonstration purposes.)</p>
         </div>
