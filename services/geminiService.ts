@@ -82,8 +82,19 @@ const parseJsonFromText = <T,>(text: string, isArrayExpected: boolean = false): 
       while ((match = tokenRegex.exec(arrayContent)) !== null) {
         const token = match[0];
 
-        if (token.startsWith('"')) {
-            continue;
+        if (char === '"') {
+          let backslashCount = 0;
+          for (let j = i - 1; j >= 0; j--) {
+            if (arrayContent[j] === '\\') {
+              backslashCount++;
+            } else {
+              break;
+            }
+          }
+
+          if (backslashCount % 2 === 0) {
+            inString = !inString;
+          }
         }
 
         if (token === '{') {
