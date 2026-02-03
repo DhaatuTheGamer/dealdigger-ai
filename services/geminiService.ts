@@ -70,12 +70,17 @@ const parseJsonFromText = <T,>(text: string, isArrayExpected: boolean = false): 
     if (isArrayExpected && jsonStr.startsWith('[') && jsonStr.endsWith(']')) {
       const arrayContent = jsonStr.substring(1, jsonStr.length - 1).trim();
       const extractedObjects: any[] = [];
-      let buffer = "";
-      let depth = 0;
-      let inString = false;
 
-      for (let i = 0; i < arrayContent.length; i++) {
-        const char = arrayContent[i];
+      // Regex to match strings (ignoring escaped quotes) OR braces
+      // This is more robust and faster than character-by-character iteration
+      const tokenRegex = /"(?:[^"\\]|\\.)*"|[{}]/g;
+
+      let match;
+      let depth = 0;
+      let startIndex = -1;
+
+      while ((match = tokenRegex.exec(arrayContent)) !== null) {
+        const token = match[0];
 
         if (char === '"') {
           let backslashCount = 0;
@@ -92,37 +97,24 @@ const parseJsonFromText = <T,>(text: string, isArrayExpected: boolean = false): 
           }
         }
 
-        if (!inString) {
-          if (char === '{') {
-            if (depth === 0) { // Start of a new potential top-level object
-              buffer = ""; // Clear buffer to remove any leading junk
+        if (token === '{') {
+            if (depth === 0) {
+                startIndex = match.index;
             }
             depth++;
-          } else if (char === '}') {
+        } else if (token === '}') {
             depth--;
-          }
-        }
-        
-        buffer += char;
-
-        if (!inString && depth === 0 && char === '}') { // End of a potential top-level object
-          if (buffer.trim().startsWith('{')) { // Check if buffer actually forms an object
-            try {
-              const obj = JSON.parse(buffer);
-              extractedObjects.push(obj);
-              buffer = ""; // Reset buffer for next object or junk
-            } catch (parseError) {
-              // console.warn("Segment not parseable as JSON object during iterative array parse:", buffer, parseError);
-              // Don't reset buffer here, might be part of larger junk or malformed item
+            if (depth === 0 && startIndex !== -1) {
+                // Found a potential object from startIndex to match.index + 1
+                const potentialObjStr = arrayContent.substring(startIndex, match.index + 1);
+                try {
+                    const obj = JSON.parse(potentialObjStr);
+                    extractedObjects.push(obj);
+                } catch (err) {
+                    // Ignore malformed object
+                }
+                startIndex = -1; // Reset
             }
-          } else {
-             // Buffer didn't start with '{' but ended with '}', likely junk.
-             buffer = "";
-          }
-        } else if (!inString && depth === 0 && char === ',') {
-          // Comma separator found at top level.
-          // The content in buffer *before* this comma (if any, and not parsed as obj) was junk.
-          buffer = ""; // Reset buffer, effectively discarding anything before this comma that wasn't a valid object.
         }
       }
       
